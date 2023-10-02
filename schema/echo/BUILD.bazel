@@ -1,0 +1,15 @@
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_rust//proto/prost:defs.bzl", "rust_prost_library")
+
+proto_library(
+    name = "echo",
+    srcs = [
+        "echo.proto",
+    ],
+)
+
+rust_prost_library(
+    name = "echo_rs_proto",
+    proto = ":echo",
+    visibility = ["//visibility:public"],
+)

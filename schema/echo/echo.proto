@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package echo;
+
+message EchoRequest {
+    string message = 1;
+}
+
+message EchoResponse {
+    string message = 1;
+}
+
+service Echo {
+    // UnaryEcho is unary echo.
+    rpc UnaryEcho(EchoRequest) returns (EchoResponse) {}
+
+    // ServerStreamingEcho is server side streaming.
+    rpc ServerStreamingEcho(EchoRequest) returns (stream EchoResponse) {}
+
+    // ClientStreamingEcho is client side streaming.
+    rpc ClientStreamingEcho(stream EchoRequest) returns (EchoResponse) {}
+
+    // BidirectionalStreamingEcho is bidi streaming.
+    rpc BidirectionalStreamingEcho(stream EchoRequest)
+        returns (stream EchoResponse) {}
+}

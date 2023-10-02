@@ -1,0 +1,106 @@
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+#####
+# rules_rust
+#####
+RULES_RUST_VERSION = "0.28.0"
+http_archive(
+    name = "rules_rust",
+    sha256 = "c46bdafc582d9bd48a6f97000d05af4829f62d5fee10a2a3edddf2f3d9a232c1",
+    urls = [
+        "https://github.com/bazelbuild/rules_rust/releases/download/{v}/rules_rust-v{v}.tar.gz".format(v = RULES_RUST_VERSION),
+    ],
+)
+
+load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
+
+rules_rust_dependencies()
+
+rust_register_toolchains(
+    edition = "2021",
+    extra_target_triples = [
+        "aarch64-apple-darwin",
+        "x86_64-apple-darwin",
+    ],
+)
+
+load("@rules_rust//proto/prost:repositories.bzl", "rust_prost_dependencies")
+
+rust_prost_dependencies()
+
+load("@rules_rust//proto/prost:transitive_repositories.bzl", "rust_prost_transitive_repositories")
+
+rust_prost_transitive_repositories()
+
+load("@rules_rust//crate_universe:repositories.bzl", "crate_universe_dependencies")
+
+crate_universe_dependencies()
+
+load("@rules_rust//crate_universe:defs.bzl", "crates_repository", "crate")
+
+crates_repository(
+    name = "crate_index",
+    cargo_lockfile = "//:Cargo.lock",
+    # CARGO_BAZEL_REPIN=full bazel sync --only=crate_index
+    lockfile = "//:Cargo.Bazel.lock",
+    manifests = [
+        "//:Cargo.toml",
+        "//code/server:Cargo.toml",
+    ],
+
+    annotations = {
+        "protoc-gen-prost": [crate.annotation(
+            gen_binaries = ["protoc-gen-prost"],
+        )],
+        "protoc-gen-tonic": [crate.annotation(
+            gen_binaries = ["protoc-gen-tonic"],
+        )],
+    },
+
+    packages = {
+        "futures-core": crate.spec(
+            version = "0",
+        ),
+        "prost": crate.spec(
+            version = "0",
+        ),
+        "prost-types": crate.spec(
+            version = "0",
+        ),
+        "protoc-gen-prost": crate.spec(
+            version = "0",
+        ),
+        "protoc-gen-tonic": crate.spec(
+            version = "0",
+        ),
+        "tonic": crate.spec(
+            version = "0",
+        ),
+    },
+)
+
+load("@crate_index//:defs.bzl", "crate_repositories")
+
+crate_repositories()
+
+load("@rules_rust//tools/rust_analyzer:deps.bzl", "rust_analyzer_dependencies")
+
+rust_analyzer_dependencies()
+
+#####
+# rules_proto
+#####
+http_archive(
+    name = "rules_proto",
+    sha256 = "dc3fb206a2cb3441b485eb1e423165b231235a1ea9b031b4433cf7bc1fa460dd",
+    strip_prefix = "rules_proto-5.3.0-21.7",
+    urls = [
+        "https://github.com/bazelbuild/rules_proto/archive/refs/tags/5.3.0-21.7.tar.gz",
+    ],
+)
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+rules_proto_dependencies()
+rules_proto_toolchains()
+
+
+register_toolchains("//toolchains:prost_toolchain")
